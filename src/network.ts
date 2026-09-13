@@ -1,6 +1,8 @@
+import { Option } from './types/option.type.js'
+
 export async function fetchData<T>(
   url: string,
-  parseData: (raw: any) => T | null,
+  parseData: (raw: any) => Option<T>,
   method: "GET" | "POST" = "GET",
   mode: "JSON" | "TEXT" = "JSON"
 ) {

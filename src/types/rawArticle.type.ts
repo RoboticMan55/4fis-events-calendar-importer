@@ -1,10 +1,12 @@
+import { Option } from './option.type.js'
+
 export type RawArticle = {
   readonly rawContent: string;
-  readonly detailLink: string | null;
+  readonly detailLink: Option<string>;
 };
 
 export type RawArticleExtractors = {
-  readonly extractDetailLink: (html: string) => string | null
+  readonly extractDetailLink: (html: string) => Option<string>
 };
 
 export const asRawArticle = 

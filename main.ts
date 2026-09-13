@@ -1,5 +1,6 @@
 import { fetchData } from "./src/network.js";
 import { asArticleDetail, RawArticleDetail } from "./src/types/articleDetail.type.js";
+import { none, some } from "./src/types/option.type.js";
 import { asRawArticle } from "./src/types/rawArticle.type.js";
 import { 
   extractDetailLink, 
@@ -19,23 +20,23 @@ const ARTICLE_CLOSING_TAG = "</article>";
 const rawData = await fetchData<{ data: string }>(
   DATA_SOURCE_URL,
   (raw: any) => {
-    if (raw.data) return { data: raw.data }
-    return null;
+    if (raw.data) return some({ data: raw.data })
+    return none();
   },
   "POST"
 );
 
-if (!rawData) {
+if (!rawData.some) {
   throw new Error("Received data in unexpected format;")
 }
 
 const articleBounds = zip(
-  getAllSubstringIndices(rawData.data, ARTICLE_OPENING_TAG),
-  getAllSubstringIndices(rawData.data, ARTICLE_CLOSING_TAG)
+  getAllSubstringIndices(rawData.value.data, ARTICLE_OPENING_TAG),
+  getAllSubstringIndices(rawData.value.data, ARTICLE_CLOSING_TAG)
 );
 
 const rawArticlesWithLink = articleBounds.map((bound, _) => {
-  const content = rawData.data.substring(
+  const content = rawData.value.data.substring(
     bound.first, 
     bound.second + ARTICLE_CLOSING_TAG.length
   );
@@ -47,24 +48,24 @@ const rawArticlesWithLink = articleBounds.map((bound, _) => {
 
 const articleWithLink = rawArticlesWithLink[0];
 
-if (!articleWithLink.detailLink) {
+if (!articleWithLink.detailLink.some) {
   throw new Error("Missing link");
 }
 
 const rawArticleDetail = await fetchData<RawArticleDetail>(
-  articleWithLink.detailLink,
+  articleWithLink.detailLink.value,
   (raw: any) => {
-    if (typeof raw !== "string") return null;
-    return {
+    if (typeof raw !== "string") return none();
+    return some({
       rawContent: raw,
       detailLink: articleWithLink.detailLink
-    }
+    })
   },
   "POST",
   "TEXT"
 );
 
-if (!rawArticleDetail) {
+if (!rawArticleDetail.some) {
   throw new Error("Received data in unexpected format;")
 }
 
@@ -74,6 +75,6 @@ const articleDetail = asArticleDetail({
   extractRegisterFrom,
   extractPlace,
   extractDescription
-})(rawArticleDetail);
+})(rawArticleDetail.value);
 
 console.log(articleDetail);

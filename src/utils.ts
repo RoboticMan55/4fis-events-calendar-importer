@@ -1,4 +1,6 @@
 
+import { none, Option, some } from './types/option.type.js'
+
 export function zip<T, U>(
   first: T[], 
   second: U[]
@@ -25,11 +27,11 @@ export function getAllSubstringIndices(haystack: string, needle: string): number
 
 export const extractByPattern = 
   (pattern: RegExp) => 
-  (html: string): string | null => {
+  (html: string): Option<string> => {
     const match = html.match(pattern);
     return match && match[1] 
-      ? match[1].replace(/\s+/g, ' ').trim() 
-      : null
+      ? some(match[1].replace(/\s+/g, ' ').trim()) 
+      : none()
   };
 
 export const extractDetailLink =

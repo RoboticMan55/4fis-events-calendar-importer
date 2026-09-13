@@ -1,28 +1,30 @@
+import { Option, some, unwrapOr } from './option.type.js'
+
 export type RawArticleDetail = {
   readonly rawContent: string;
-  readonly detailLink: string | null;
+  readonly detailLink: Option<string>;
 }
 
 export type ArticleDetail = {
   readonly name: string,
-  readonly startDateTime: string | null
-  readonly registerFrom: string | null
-  readonly place: string | null
-  readonly description: string | null
+  readonly startDateTime: Option<string>
+  readonly registerFrom: Option<string>
+  readonly place: Option<string>
+  readonly description: Option<string>
 };
 
 export type ArticleExtractors = {
-  readonly extractName: (html: string) => string | null,
-  readonly extractStartDateTime: (html: string) => string | null,
-  readonly extractRegisterFrom: (html: string) => string | null,
-  readonly extractPlace: (html: string) => string | null,
-  readonly extractDescription: (html: string) => string | null
+  readonly extractName: (html: string) => Option<string>,
+  readonly extractStartDateTime: (html: string) => Option<string>,
+  readonly extractRegisterFrom: (html: string) => Option<string>,
+  readonly extractPlace: (html: string) => Option<string>,
+  readonly extractDescription: (html: string) => Option<string>
 };
 
 export const asArticleDetail = 
   (extr: ArticleExtractors) => 
   (rawContent: RawArticleDetail): ArticleDetail => ({
-    name: extr.extractName(rawContent.rawContent) ?? "No name",
+    name: unwrapOr(extr.extractName(rawContent.rawContent), "No name"),
     startDateTime: extr.extractStartDateTime(rawContent.rawContent),
     registerFrom: extr.extractRegisterFrom(rawContent.rawContent),
     place: extr.extractPlace(rawContent.rawContent),
