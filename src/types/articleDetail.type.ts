@@ -1,4 +1,4 @@
-import { Option, some, unwrapOr } from './option.type.js'
+import { Option, unwrapOr } from './option.type.js'
 
 export type RawArticleDetail = {
   readonly rawContent: string;

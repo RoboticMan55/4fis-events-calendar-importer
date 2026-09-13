@@ -7,9 +7,15 @@ export const some = <T>(value: T): Option<T> => ({
   value
 })
 
+export const isSome = <T>(option: Option<T>): option is Some<T> =>
+  option.some
+
 export const none = (): Option<never> => ({
   some: false
 })
+
+export const isNone = <T>(option: Option<T>): option is None =>
+  !option.some
 
 export const unwrapOr = <T>(option: Option<T>, fallback: T): T =>
   option.some ? option.value : fallback;
