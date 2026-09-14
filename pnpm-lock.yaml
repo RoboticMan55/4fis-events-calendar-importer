@@ -10,9 +10,16 @@ importers:
     dependencies:
       ical-generator:
         specifier: ^11.1.1
-        version: 11.1.1
+        version: 11.1.1(@types/node@26.5.1)
+    devDependencies:
+      '@types/node':
+        specifier: ^26.5.1
+        version: 26.5.1
 
 packages:
+
+  '@types/node@26.5.1':
+    resolution: {integrity: sha512-CzNm2FezW4VR/LjG6yUdiEgLE/rAQ9Slj5gCu/C2VrdcW7I0ahNZ8DRbHT7zOZ6r3ONgd/bsQIeSaoDGrd1C6g==}
 
   ical-generator@11.1.1:
     resolution: {integrity: sha512-1m50e+BOMzxtE3lFXlFiOKvze4Mmiiq2+QoEMw7w7EDtWSq8OxWrdN6mmQdaymBVjmkP1pg0BAPUesBL1ZHQMQ==}
@@ -47,6 +54,17 @@ packages:
       rrule:
         optional: true
 
+  undici-types@8.9.0:
+    resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
+
 snapshots:
 
-  ical-generator@11.1.1: {}
+  '@types/node@26.5.1':
+    dependencies:
+      undici-types: 8.9.0
+
+  ical-generator@11.1.1(@types/node@26.5.1):
+    optionalDependencies:
+      '@types/node': 26.5.1
+
+  undici-types@8.9.0: {}

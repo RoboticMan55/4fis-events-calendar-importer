@@ -2,5 +2,8 @@
     "type": "module",
     "dependencies": {
         "ical-generator": "^11.1.1"
+    },
+    "devDependencies": {
+        "@types/node": "^26.5.1"
     }
 }

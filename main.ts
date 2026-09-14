@@ -1,4 +1,5 @@
 import ical, { ICalCalendar, ICalCalendarMethod } from "ical-generator";
+import { writeFile } from "node:fs/promises";
 import { fetchData } from "./src/network.js";
 import { 
   extractDescription,
@@ -22,6 +23,7 @@ import {
   RawArticleDetail, 
   unwrapOr 
 } from "./src/types/index.types.js";
+import { createCalendar } from "./src/calendar.js";
 
 async function main() {
   const DATA_SOURCE_URL = "https://4fis.cz/wp-admin/admin-ajax.php?action=example_ajax_request";
@@ -106,46 +108,25 @@ async function main() {
       return [res.value.error];
 
     return [];
-  })
-  
+  });
+
   const events = results.flatMap((res) => 
     res.status === "fulfilled" && isOk(res.value) 
       ? [res.value.value] 
       : []
   );
-  createCalendar(events);
-}
 
-function createCalendar(events: ArticleDetail[]): ICalCalendar {
-  const calendar = ical({ 
-    name: "4FIS Events",
-    method: ICalCalendarMethod.ADD
-  });
+  const calendar = createCalendar(events);
+  try {
+    await writeFile("4fis.ics", calendar.toString());
+  } catch (error) {
+    console.error("Error while writing calendar file:", error);
+  }
 
-  events.forEach((event) => {
-    const startDate: Date = unwrapOr(event.startDateTime, new Date("1970-01-01T00:00:00Z"));
-    const endDate: Date = unwrapOr(event.endDateTime, new Date("1970-01-01T00:00:00Z"));
-
-    let start: Date | string = startDate;
-    let end: Date | string = endDate;
-
-    if (start.getTime() === new Date("1970-01-01T00:00:00Z").getTime())
-      start = "Not announced yet";
-
-    if (end.getTime() === new Date("1970-01-01T00:00:00Z").getTime())
-      end = "Not announced yet";
-
-    calendar.createEvent({
-      start,
-      end,
-      summary: event.name,
-      description: unwrapOr(event.description, ""),
-      location: unwrapOr(event.place, ""),
-      url: event.detailLink
-    });
-  });
-
-  return calendar;
+  console.info(`Calendar file created with ${events.length} events. ${failures.length} failures occurred.`);
+  if (failures.length > 0) {
+    console.error("Failures:", failures);
+  }
 }
 
 main();
