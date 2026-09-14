@@ -1,12 +1,11 @@
-import { Option } from './types/option.type.js'
-import { err, ok, Result } from './types/result.type.js';
+import { err, Result } from './types/index.types.js';
 
 export async function fetchData<T>(
   url: string,
-  parseData: (raw: any) => Option<T>,
+  parseData: (raw: any) => Result<T, string>,
   method: "GET" | "POST" = "GET",
   mode: "JSON" | "TEXT" = "JSON"
-): Promise<Result<Option<T>, string>> {
+): Promise<Result<T, string>> {
   let response: Response;
   try {
     response = await fetch(url, {
@@ -32,5 +31,5 @@ export async function fetchData<T>(
     return err("Parse error")
   }
   
-  return ok(parseData(raw));
+  return parseData(raw);
 }

@@ -1,4 +1,4 @@
-import { Option } from './option.type.js'
+import { Option } from './index.types.js'
 
 export type RawArticle = {
   readonly rawContent: string;

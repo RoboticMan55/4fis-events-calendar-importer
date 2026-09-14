@@ -1,18 +1,27 @@
+import ical, { ICalCalendar, ICalCalendarMethod } from "ical-generator";
 import { fetchData } from "./src/network.js";
-import { asArticleDetail, RawArticleDetail } from "./src/types/articleDetail.type.js";
-import { isNone, isSome, none, some } from "./src/types/option.type.js";
-import { asRawArticle } from "./src/types/rawArticle.type.js";
-import { isErr, isOk } from "./src/types/result.type.js";
 import { 
-  extractDetailLink, 
+  extractDescription,
+  extractDetailLink,
   extractName,
   extractPlace,
   extractRegisterFrom,
   extractStartDateTime,
-  extractDescription,
   getAllSubstringIndices, 
   zip 
-} from "./src/utils.js";
+} from "./src/utils/index.utils.js";
+import { 
+  ArticleDetail, 
+  asArticleDetail, 
+  asRawArticle, 
+  err, 
+  isErr, 
+  isNone, 
+  isOk, 
+  ok, 
+  RawArticleDetail, 
+  unwrapOr 
+} from "./src/types/index.types.js";
 
 async function main() {
   const DATA_SOURCE_URL = "https://4fis.cz/wp-admin/admin-ajax.php?action=example_ajax_request";
@@ -22,8 +31,8 @@ async function main() {
   const rawDataRes = await fetchData<{ data: string }>(
     DATA_SOURCE_URL,
     (raw: any) => {
-      if (raw.data) return some({ data: raw.data })
-      return none();
+      if (raw.data) return ok({ data: raw.data })
+      return err("Failed to extract data");
     },
     "POST"
   );
@@ -33,13 +42,7 @@ async function main() {
     return;
   }
 
-  const rawDataOpt = rawDataRes.value;
-  if (isNone(rawDataOpt)) {
-    console.error("Failed to parse data");
-    return;
-  }
-
-  const rawData = rawDataOpt.value;
+  const rawData = rawDataRes.value;
   const articleBounds = zip(
     getAllSubstringIndices(rawData.data, ARTICLE_OPENING_TAG),
     getAllSubstringIndices(rawData.data, ARTICLE_CLOSING_TAG)
@@ -58,8 +61,7 @@ async function main() {
 
   const articlePromises = rawArticlesWithLink.map(async (article) => {
     if (isNone(article.detailLink)) {
-      console.error(`Link is missing for ${article}`)
-      return;
+      return err(`Link is missing for ${article}`);
     }
 
     const detailUrl = article.detailLink.value;
@@ -67,8 +69,10 @@ async function main() {
     const rawDetailRes = await fetchData<RawArticleDetail>(
       detailUrl,
       (raw: any) => {
-        if (typeof raw !== "string") return none();
-        return some({
+        if (typeof raw !== "string") 
+          return err("Returned data is not parsable as string");
+
+        return ok({
           rawContent: raw,
           detailLink: article.detailLink
         })
@@ -78,14 +82,7 @@ async function main() {
     );
 
     if (isErr(rawDetailRes)) {
-      console.warn(`Failed to fetch data for ${detailUrl}`, rawDetailRes.error);
-      return;
-    }
-
-    const rawDetailOpt = rawDetailRes.value;
-    if (isNone(rawDetailOpt)) {
-      console.warn(`Received data in unexpected format for ${detailUrl}`);
-      return;
+      return err(`Failed to fetch data for ${detailUrl}`);
     }
 
     const articleDetail = asArticleDetail({
@@ -94,19 +91,61 @@ async function main() {
       extractRegisterFrom,
       extractPlace,
       extractDescription
-    })(rawDetailOpt.value);
+    })(rawDetailRes.value);
     
-    return articleDetail
+    return ok(articleDetail);
   });
 
   const results = await Promise.allSettled(articlePromises);
-  results.forEach((res, idx) => {
-    if (res.status === "rejected") {
-      console.error(`Article at index ${idx} failed: `, res.reason)
-    } else if (res.value) {
-      console.log(`Succeeded for ${res.value.name}`)
-    }
+  
+  const failures = results.flatMap((res) => {
+    if (res.status === "rejected") 
+      return [`Unexpected error: ${res.reason}`];
+
+    if (res.status === "fulfilled" && isErr(res.value))
+      return [res.value.error];
+
+    return [];
   })
+  
+  const events = results.flatMap((res) => 
+    res.status === "fulfilled" && isOk(res.value) 
+      ? [res.value.value] 
+      : []
+  );
+  createCalendar(events);
+}
+
+function createCalendar(events: ArticleDetail[]): ICalCalendar {
+  const calendar = ical({ 
+    name: "4FIS Events",
+    method: ICalCalendarMethod.ADD
+  });
+
+  events.forEach((event) => {
+    const startDate: Date = unwrapOr(event.startDateTime, new Date("1970-01-01T00:00:00Z"));
+    const endDate: Date = unwrapOr(event.endDateTime, new Date("1970-01-01T00:00:00Z"));
+
+    let start: Date | string = startDate;
+    let end: Date | string = endDate;
+
+    if (start.getTime() === new Date("1970-01-01T00:00:00Z").getTime())
+      start = "Not announced yet";
+
+    if (end.getTime() === new Date("1970-01-01T00:00:00Z").getTime())
+      end = "Not announced yet";
+
+    calendar.createEvent({
+      start,
+      end,
+      summary: event.name,
+      description: unwrapOr(event.description, ""),
+      location: unwrapOr(event.place, ""),
+      url: event.detailLink
+    });
+  });
+
+  return calendar;
 }
 
 main();
