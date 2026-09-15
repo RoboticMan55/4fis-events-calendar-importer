@@ -17,11 +17,6 @@ export const createCalendar = (
 
   const logs: string[] = [];
   events.forEach((event) => {
-    if (!event.startDateTime) {
-      logs.push(`Event "${event.name}" is missing a start date/time. Skipping.`);
-      return;
-    }
-
     calendar.createEvent({
       summary: event.name,
       start: event.startDateTime,

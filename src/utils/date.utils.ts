@@ -11,7 +11,12 @@ export const parseDate = (dateTimeStr: Option<string>): Option<Date> => {
   if (isNone(dateStrOpt))
     return none();
   
-  const [day, month, year] = dateStrOpt.value.split(/[.\-]/).map(Number);
+  let [day, month, year] = dateStrOpt.value.split(/[.\-]/).map(Number);
+
+  // If year is not provided, assume the current year
+  if (Number.isNaN(year))
+    year = new Date().getFullYear();
+
   if (isNone(timeStrOpt))
     return some(new Date(year, month - 1, day))
 
