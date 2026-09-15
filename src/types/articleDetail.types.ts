@@ -1,5 +1,5 @@
 import { endOfDay, parseDate } from '../utils/index.utils.js';
-import { err, isNone, ok, Option, Result } from './index.types.js'
+import { err, isNone, ok, Option, Result, some } from './index.types.js'
 
 export type RawArticleDetail = {
   readonly rawContent: string;
@@ -38,13 +38,22 @@ export const asArticleDetail =
     if (isNone(startDateTimeOpt))
       return err("Invalid date");
 
+    const buildDescription = (descriptionOpt: Option<string>): string => {
+      const link = "<a href=\"" + rawContent.detailLink + "\">" + rawContent.detailLink + "</a>";
+      
+      if (isNone(descriptionOpt))
+        return link;
+
+      return link + "<br><br>" + descriptionOpt.value;
+    };
+
     return ok({
       name: nameOpt.value,
       startDateTime: startDateTimeOpt.value,
       endDateTime: endOfDay(startDateTimeOpt.value),
       registerFrom: parseDate(extr.extractRegisterFrom(html)),
       place: extr.extractPlace(html),
-      description: extr.extractDescription(html),
+      description: some(buildDescription(extr.extractDescription(html))),
       detailLink: rawContent.detailLink,
       id: rawContent.detailLink
     });
