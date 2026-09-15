@@ -14,6 +14,7 @@ export type ArticleDetail = {
   readonly place: Option<string>
   readonly description: Option<string>
   readonly detailLink: string
+  readonly id: string
 };
 
 export type ArticleExtractors = {
@@ -42,12 +43,8 @@ export const asArticleDetail =
       place: extr.extractPlace(html),
       description: extr.extractDescription(html),
       detailLink: unwrapOr(rawContent.detailLink, "No link"),
+      id: rawContent.detailLink.some 
+        ? rawContent.detailLink.value
+        : "No id"
     };
   }
-
-export type StoredArticle = ArticleDetail & {
-  /**
-  * SHA256 hash of the event's content. Used to ensure idempotency of the script.
-  */
-  hash: string | null
-};

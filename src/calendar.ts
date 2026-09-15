@@ -1,24 +1,25 @@
 import ical, { ICalCalendar, ICalCalendarMethod } from "ical-generator";
 import { ArticleDetail, unwrapOr } from "./types/index.types.js";
 
-export function createCalendar(events: ArticleDetail[]): ICalCalendar {
+export type CalendarConfig = {
+  name: string;
+  method: ICalCalendarMethod;
+}
+
+export const createCalendar = (
+  config: CalendarConfig
+) => (events: ArticleDetail[]): ICalCalendar => {
   const calendar = ical({ 
-    name: "4FIS Events",
-    method: ICalCalendarMethod.ADD
+    name: config.name,
+    method: config.method
   });
 
   events.forEach((event) => {
-    const startDate: Date = unwrapOr(event.startDateTime, new Date("1970-01-01T00:00:00Z"));
-    const endDate: Date = unwrapOr(event.endDateTime, new Date("1970-01-01T00:00:00Z"));
+    if (!event.startDateTime.some)
+      return;
 
-    let start: Date | string = startDate;
-    let end: Date | string = endDate;
-
-    if (start.getTime() === new Date("1970-01-01T00:00:00Z").getTime())
-      start = "Not announced yet";
-
-    if (end.getTime() === new Date("1970-01-01T00:00:00Z").getTime())
-      end = "Not announced yet";
+    const start = event.startDateTime.value;
+    const end = event.endDateTime.some ? event.endDateTime.value : start;
 
     calendar.createEvent({
       start,
@@ -26,7 +27,8 @@ export function createCalendar(events: ArticleDetail[]): ICalCalendar {
       summary: event.name,
       description: unwrapOr(event.description, ""),
       location: unwrapOr(event.place, ""),
-      url: event.detailLink
+      url: event.detailLink,
+      id: event.id,
     });
   });
 
