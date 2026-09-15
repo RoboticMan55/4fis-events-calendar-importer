@@ -90,7 +90,7 @@ export const extractArticles = (
     getAllSubstringIndices(rawData, articleClosingTag)
   );
   
-  return articleBounds.map((bound, _) => {
+  return articleBounds.map((bound) => {
     const content = rawData.substring(
       bound.first, 
       bound.second + articleClosingTag.length
