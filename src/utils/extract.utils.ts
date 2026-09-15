@@ -33,6 +33,12 @@ export const extractName =
 export const extractStartDateTime =
   extractByPattern(/Datum\s+a\s+čas:\s*<\/span>\s*<span[^>]*>([^<]+)<\/span>/i);
 
+export const extractDate =
+  extractByPattern(/\s*(\d{1,2}\s*[.-]\s*\d{1,2}\s*[.-](?:\s*\d{4})?)/);
+
+export const extractTime = 
+  extractByPattern(/\s*(\d{1,2}:\d{2})/)
+
 export const extractRegisterFrom =
   extractByPattern(/Registrace:\s*<\/span>\s*<span[^>]*>([^<]+)<\/span>/i);
 

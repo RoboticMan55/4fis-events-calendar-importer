@@ -1,15 +1,15 @@
 import { endOfDay, parseDate } from '../utils/index.utils.js';
-import { none, Option, some, unwrapOr } from './index.types.js'
+import { err, isNone, ok, Option, Result } from './index.types.js'
 
 export type RawArticleDetail = {
   readonly rawContent: string;
-  readonly detailLink: Option<string>;
+  readonly detailLink: string;
 }
 
 export type ArticleDetail = {
-  readonly name: string,
-  readonly startDateTime: Option<Date>
-  readonly endDateTime: Option<Date>
+  readonly name: string
+  readonly startDateTime: Date
+  readonly endDateTime: Date
   readonly registerFrom: Option<Date>
   readonly place: Option<string>
   readonly description: Option<string>
@@ -27,24 +27,25 @@ export type ArticleExtractors = {
 
 export const asArticleDetail = 
   (extr: ArticleExtractors) => 
-  (rawContent: RawArticleDetail): ArticleDetail => {
+  (rawContent: RawArticleDetail): Result<ArticleDetail, string> => {
     const html = rawContent.rawContent;
-    const startDateTimeOpt = parseDate(extr.extractStartDateTime(html));
-    
-    return {
-      name: unwrapOr(extr.extractName(html), "No name"),
-      startDateTime: startDateTimeOpt,
-      
-      endDateTime: startDateTimeOpt.some 
-        ? some(endOfDay(startDateTimeOpt.value)) 
-        : none(),
 
+    const nameOpt = extr.extractName(html);
+    if (isNone(nameOpt))
+      return err("Missing name");
+
+    const startDateTimeOpt = parseDate(extr.extractStartDateTime(html));
+    if (isNone(startDateTimeOpt))
+      return err("Invalid date");
+
+    return ok({
+      name: nameOpt.value,
+      startDateTime: startDateTimeOpt.value,
+      endDateTime: endOfDay(startDateTimeOpt.value),
       registerFrom: parseDate(extr.extractRegisterFrom(html)),
       place: extr.extractPlace(html),
       description: extr.extractDescription(html),
-      detailLink: unwrapOr(rawContent.detailLink, "No link"),
-      id: rawContent.detailLink.some 
-        ? rawContent.detailLink.value
-        : "No id"
-    };
+      detailLink: rawContent.detailLink,
+      id: rawContent.detailLink
+    });
   }

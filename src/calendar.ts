@@ -17,22 +17,19 @@ export const createCalendar = (
 
   const logs: string[] = [];
   events.forEach((event) => {
-    if (!event.startDateTime.some) {
+    if (!event.startDateTime) {
       logs.push(`Event "${event.name}" is missing a start date/time. Skipping.`);
       return;
     }
 
-    const start = event.startDateTime.value;
-    const end = event.endDateTime.some ? event.endDateTime.value : start;
-
     calendar.createEvent({
-      start,
-      end,
       summary: event.name,
-      description: unwrapOr(event.description, ""),
-      location: unwrapOr(event.place, ""),
+      start: event.startDateTime,
+      end: event.endDateTime,
       url: event.detailLink,
       id: event.id,
+      description: unwrapOr(event.description, ""),
+      location: unwrapOr(event.place, ""),
     });
   });
 

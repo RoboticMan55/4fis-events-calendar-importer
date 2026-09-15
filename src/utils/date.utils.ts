@@ -1,11 +1,22 @@
-import { Option, none, some } from "../types/index.types.js";
+import { Option, isNone, none, some } from "../types/index.types.js";
+import { extractDate, extractTime } from "./extract.utils.js";
 
-export const parseDate = (dateStr: Option<string>): Option<Date> => {
-  if (dateStr.some) {
-    const date = new Date(dateStr.value);
-    return isNaN(date.getTime()) ? none() : some(date);
-  }
-  return none();
+export const parseDate = (dateTimeStr: Option<string>): Option<Date> => {
+  if (isNone(dateTimeStr))
+    return none();
+
+  const dateStrOpt = extractDate(dateTimeStr.value);
+  const timeStrOpt = extractTime(dateTimeStr.value);
+
+  if (isNone(dateStrOpt))
+    return none();
+  
+  const [day, month, year] = dateStrOpt.value.split(/[.\-]/).map(Number);
+  if (isNone(timeStrOpt))
+    return some(new Date(year, month - 1, day))
+
+  const [hours, minutes] = timeStrOpt.value.split(':').map(Number);
+  return some(new Date(year, month - 1, day, hours, minutes));
 };
 
 export const endOfDay = (date: Date): Date => {

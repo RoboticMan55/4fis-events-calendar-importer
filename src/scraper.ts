@@ -53,7 +53,6 @@ export async function getArticleDetail(
   }
   
   const detailUrl = article.detailLink.value;
-  
   const rawDetailRes = await fetchData<RawArticleDetail>(
     detailUrl,
     (raw: any) => {
@@ -62,7 +61,7 @@ export async function getArticleDetail(
       
       return ok({
         rawContent: raw,
-        detailLink: article.detailLink
+        detailLink: detailUrl
       })
     },
     "POST",
@@ -73,15 +72,13 @@ export async function getArticleDetail(
     return err(`Failed to fetch data for ${detailUrl}`);
   }
   
-  const articleDetail = asArticleDetail({
+  return asArticleDetail({
     extractName,
     extractStartDateTime,
     extractRegisterFrom,
     extractPlace,
     extractDescription
   })(rawDetailRes.value);
-  
-  return ok(articleDetail);
 }
 
 export const extractArticles = (
