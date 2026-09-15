@@ -27,15 +27,6 @@ async function main() {
       : []
   );
 
-  const createCalendarConfigured = createCalendar({ name: "4FIS Events", method: ICalCalendarMethod.ADD });
-  const calendar = createCalendarConfigured(events);
-  const saveRes = await saveCalendarToFile(calendar, "4fis.ics");
-
-  if (isErr(saveRes)) {
-    console.error("Error while saving calendar file", saveRes.error);
-    return;
-  }
-
   const failures = results.flatMap((res) => {
     if (res.status === "rejected") 
       return [`Unexpected error: ${res.reason}`];
@@ -45,6 +36,17 @@ async function main() {
     
     return [];
   });
+
+  const createCalendarConfigured = createCalendar({ name: "4FIS Events", method: ICalCalendarMethod.ADD });
+  
+  const calendarWithLogs = createCalendarConfigured(events);
+  const saveRes = await saveCalendarToFile(calendarWithLogs.value, "4fis.ics");
+  failures.push(...calendarWithLogs.logs);
+
+  if (isErr(saveRes)) {
+    console.error("Error while saving calendar file", saveRes.error);
+    return;
+  }
 
   console.info(`Calendar file created with ${events.length} events. ${failures.length} failures occurred.`);
   if (failures.length > 0) {

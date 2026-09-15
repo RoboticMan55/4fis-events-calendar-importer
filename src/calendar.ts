@@ -1,5 +1,6 @@
 import ical, { ICalCalendar, ICalCalendarMethod } from "ical-generator";
 import { ArticleDetail, unwrapOr } from "./types/index.types.js";
+import { WithLogs } from "./types/withLogs.types.js";
 
 export type CalendarConfig = {
   name: string;
@@ -8,15 +9,18 @@ export type CalendarConfig = {
 
 export const createCalendar = (
   config: CalendarConfig
-) => (events: ArticleDetail[]): ICalCalendar => {
+) => (events: ArticleDetail[]): WithLogs<ICalCalendar> => {
   const calendar = ical({ 
     name: config.name,
     method: config.method
   });
 
+  const logs: string[] = [];
   events.forEach((event) => {
-    if (!event.startDateTime.some)
+    if (!event.startDateTime.some) {
+      logs.push(`Event "${event.name}" is missing a start date/time. Skipping.`);
       return;
+    }
 
     const start = event.startDateTime.value;
     const end = event.endDateTime.some ? event.endDateTime.value : start;
@@ -32,5 +36,5 @@ export const createCalendar = (
     });
   });
 
-  return calendar;
+  return { value: calendar, logs };
 }
