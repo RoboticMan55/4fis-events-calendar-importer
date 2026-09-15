@@ -109,7 +109,7 @@ async function getArticleDetail(
   article: RawArticle
 ): Promise<Result<ArticleDetail, string>> {
   if (isNone(article.detailLink)) {
-    return err(`Link is missing for ${article}`);
+    return err(`Link is missing for ${JSON.stringify(article)}`);
   }
   
   const detailUrl = article.detailLink.value;
