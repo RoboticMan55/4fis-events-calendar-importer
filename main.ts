@@ -39,9 +39,8 @@ async function main() {
 
   const createCalendarConfigured = createCalendar({ name: "4FIS Events", method: ICalCalendarMethod.ADD });
   
-  const calendarWithLogs = createCalendarConfigured(events);
-  const saveRes = await saveCalendarToFile(calendarWithLogs.value, "4fis.ics");
-  failures.push(...calendarWithLogs.logs);
+  const calendar = createCalendarConfigured(events);
+  const saveRes = await saveCalendarToFile(calendar, "4fis.ics");
 
   if (isErr(saveRes)) {
     console.error("Error while saving calendar file", saveRes.error);

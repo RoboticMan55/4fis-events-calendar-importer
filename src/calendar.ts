@@ -1,6 +1,5 @@
 import ical, { ICalCalendar, ICalCalendarMethod } from "ical-generator";
 import { ArticleDetail, unwrapOr } from "./types/index.types.js";
-import { WithLogs } from "./types/withLogs.types.js";
 
 export type CalendarConfig = {
   name: string;
@@ -9,13 +8,12 @@ export type CalendarConfig = {
 
 export const createCalendar = (
   config: CalendarConfig
-) => (events: ArticleDetail[]): WithLogs<ICalCalendar> => {
+) => (events: ArticleDetail[]): ICalCalendar => {
   const calendar = ical({ 
     name: config.name,
     method: config.method
   });
 
-  const logs: string[] = [];
   events.forEach((event) => {
     calendar.createEvent({
       summary: event.name,
@@ -28,5 +26,5 @@ export const createCalendar = (
     });
   });
 
-  return { value: calendar, logs };
+  return calendar;
 }
