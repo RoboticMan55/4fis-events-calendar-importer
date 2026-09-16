@@ -14,7 +14,7 @@ export const parseDate = (dateTimeStr: Option<string>): Option<Date> => {
   let [day, month, year] = dateStrOpt.value.split(/[.\-]/).map(Number);
 
   // If year is not provided, assume the current year
-  if (Number.isNaN(year))
+  if (!year)
     year = new Date().getFullYear();
 
   if (isNone(timeStrOpt))
