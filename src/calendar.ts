@@ -25,6 +25,7 @@ export const createCalendar = (
     calendar.createEvent({
       summary: event.name,
       start: event.startDateTime,
+      timezone: "Europe/Prague",
       end: event.endDateTime,
       url: event.detailLink,
       id: event.id,
