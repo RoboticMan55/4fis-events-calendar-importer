@@ -15,6 +15,7 @@ import {
 import { 
   extractDescription,
   extractDetailLink,
+  extractEndDateTime,
   extractName,
   extractPlace,
   extractRegisterFrom,
@@ -75,6 +76,7 @@ export async function getArticleDetail(
   return asArticleDetail({
     extractName,
     extractStartDateTime,
+    extractEndDateTime,
     extractRegisterFrom,
     extractPlace,
     extractDescription
@@ -101,6 +103,9 @@ export const extractArticles = (
     )(content);
   });
 }
+
+export const extractHtmlArticleTagContents = 
+  extractArticles("<article", "</article>");
 
 export async function saveCalendarToFile(
   calendar: ICalCalendar, 

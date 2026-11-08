@@ -31,7 +31,10 @@ export const extractName =
   extractByPattern(/<h1[^>]*>\s*([^<]*)<\/h1/);
 
 export const extractStartDateTime =
-  extractByPattern(/Datum\s+a\s+čas:\s*<\/span>\s*<span[^>]*>([^<]+)<\/span>/i);
+  extractByPattern(/(?:Datum\s+a\s+čas:|Začátek\s+akce:)\s*<\/span>\s*<span[^>]*>([^<]+)<\/span>/i);
+
+export const extractEndDateTime = 
+  extractByPattern(/Konec\s+akce:\s*<\/span>\s*<span[^>]*>([^<]+)<\/span>/i);
 
 export const extractDate =
   extractByPattern(/\s*(\d{1,2}\s*[.-]\s*\d{1,2}\s*[.-](?:\s*\d{4})?)/);

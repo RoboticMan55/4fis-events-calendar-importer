@@ -1,13 +1,9 @@
 import {  isErr, isOk } from "./src/types/index.types.js";
-import { createCalendar } from "./src/calendar.js";
-import { extractArticles, getArticleDetail, getRawData, saveCalendarToFile } from "./src/scraper.js";
-import { ICalCalendarMethod } from "ical-generator";
+import { createCalendar4Fis } from "./src/calendar.js";
+import { extractHtmlArticleTagContents, getArticleDetail, getRawData, saveCalendarToFile } from "./src/scraper.js";
 
 async function main() {
   const DATA_SOURCE_URL = "https://4fis.cz/wp-admin/admin-ajax.php?action=example_ajax_request";
-  const ARTICLE_OPENING_TAG = "<article";
-  const ARTICLE_CLOSING_TAG = "</article>";
-  
   
   const rawData = await getRawData(DATA_SOURCE_URL);
   if (isErr(rawData)) {
@@ -15,19 +11,18 @@ async function main() {
     return;
   }
   
-  const extractArticlesConfigured = extractArticles(ARTICLE_OPENING_TAG, ARTICLE_CLOSING_TAG);
-  const rawArticlesWithLink = extractArticlesConfigured(rawData.value);
-
-  const articlePromises = rawArticlesWithLink.map(getArticleDetail);
-  const results = await Promise.allSettled(articlePromises);
+  const articlePromises = await Promise.allSettled(
+    extractHtmlArticleTagContents(rawData.value)
+      .map(getArticleDetail)
+    );
   
-  const events = results.flatMap((res) => 
+  const events = articlePromises.flatMap((res) => 
     res.status === "fulfilled" && isOk(res.value) 
       ? [res.value.value] 
       : []
   );
 
-  const failures = results.flatMap((res) => {
+  const failures = articlePromises.flatMap((res) => {
     if (res.status === "rejected") 
       return [`Unexpected error: ${res.reason}`];
     
@@ -36,10 +31,8 @@ async function main() {
     
     return [];
   });
-
-  const createCalendarConfigured = createCalendar({ name: "4FIS Events", method: ICalCalendarMethod.ADD });
   
-  const calendarRes = createCalendarConfigured(events);
+  const calendarRes = createCalendar4Fis(events);
   const saveRes = await saveCalendarToFile(calendarRes.calendar, "4fis.ics");
 
   if (isErr(saveRes)) {

@@ -1,6 +1,5 @@
 import ical, { ICalCalendar, ICalCalendarMethod } from "ical-generator";
 import { ArticleDetail, isSome, unwrapOr } from "./types/index.types.js";
-import { endOfDay } from "./utils/index.utils.js";
 
 export type CalendarConfig = {
   name: string;
@@ -37,7 +36,7 @@ export const createCalendar = (
       calendar.createEvent({
         summary: `Registrace pro ${event.name}`,
         start: event.registerFrom.value,
-        end: endOfDay(event.registerFrom.value),
+        end: event.registerFrom.value,
         url: event.detailLink,
         id: `${event.id}-registration`,
         description: unwrapOr(event.description, ""),
@@ -51,3 +50,6 @@ export const createCalendar = (
     registerFromSaved: events.filter((e) => isSome(e.registerFrom)).length
   };
 }
+
+export const createCalendar4Fis = 
+  createCalendar({ name: "4FIS Events", method: ICalCalendarMethod.ADD });
